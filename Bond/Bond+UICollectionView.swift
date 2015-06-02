@@ -80,7 +80,8 @@ private class UICollectionViewDataSourceSectionBond<T>: ArrayBond<UICollectionVi
 }
 
 public class UICollectionViewDataSourceBond<T>: ArrayBond<DynamicArray<UICollectionViewCell>> {
-  weak var collectionView: UICollectionView?
+    /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
+  public weak var collectionView: UICollectionView?
   private var dataSource: CollectionViewDynamicArrayDataSource?
   private var sectionBonds: [UICollectionViewDataSourceSectionBond<Void>] = []
   

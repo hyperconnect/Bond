@@ -64,7 +64,13 @@ extension UIView {
       return (d as? Dynamic<Bool>)!
     } else {
       let d = InternalDynamic<Bool>(self.hidden, faulty: false)
-      let bond = Bond<Bool>() { [weak self] v in if let s = self { s.hidden = v } }
+      let bond = Bond<Bool>() { [weak self] v in
+        if let s = self {
+            dispatch_async(dispatch_get_main_queue()) {
+                s.hidden = v
+            }
+        }
+    }
       d.bindTo(bond, fire: false, strongly: false)
       d.retain(bond)
       objc_setAssociatedObject(self, &hiddenDynamicHandleUIView, d, objc_AssociationPolicy(OBJC_ASSOCIATION_RETAIN_NONATOMIC))
