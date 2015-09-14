@@ -166,7 +166,7 @@ public class DynamicArray<T>: Dynamic<Array<T>>, SequenceType {
   public func splice(array: Array<T>, atIndex i: Int) {
     if array.count > 0 {
       dispatchWillInsert(Array(i..<i+array.count))
-      value.splice(array, atIndex: i)
+      value.insertContentsOf(array, at: i)
       dispatchDidInsert(Array(i..<i+array.count))
     }
   }
@@ -263,7 +263,7 @@ public struct DynamicArrayGenerator<T>: GeneratorType {
     self.array = array
   }
   
-  typealias Element = T
+  public typealias Element = T
   
   public mutating func next() -> T? {
     index++
@@ -392,7 +392,7 @@ public class DynamicArrayMapProxy<T, U>: DynamicArray<U> {
 
 func indexOfFirstEqualOrLargerThan(x: Int, array: [Int]) -> Int {
   var idx: Int = -1
-  for (index, element) in enumerate(array) {
+  for (index, element) in array.enumerate() {
     if element < x {
       idx = index
     } else {
@@ -419,7 +419,7 @@ public class DynamicArrayFilterProxy<T>: DynamicArray<T> {
     
     super.init([])
     
-    for (index, element) in enumerate(sourceArray) {
+    for (index, element) in sourceArray.enumerate() {
       if filterf(element) {
         pointers.append(index)
       }
@@ -431,7 +431,7 @@ public class DynamicArrayFilterProxy<T>: DynamicArray<T> {
       
       for idx in indices {
 
-        for (index, element) in enumerate(pointers) {
+        for (index, element) in pointers.enumerate() {
           if element >= idx {
             pointers[index] = element + 1
           }
@@ -439,7 +439,7 @@ public class DynamicArrayFilterProxy<T>: DynamicArray<T> {
         
         let element = array[idx]
         if filterf(element) {
-          let position = indexOfFirstEqualOrLargerThan(idx, pointers)
+          let position = indexOfFirstEqualOrLargerThan(idx, array: pointers)
           pointers.insert(idx, atIndex: position)
           insertedIndices.append(position)
         }
@@ -460,14 +460,14 @@ public class DynamicArrayFilterProxy<T>: DynamicArray<T> {
       var removedIndices: [Int] = []
       var pointers = self.pointers
       
-      for idx in reverse(indices) {
+      for idx in Array(indices.reverse()) {
         
-        if let idx = find(pointers, idx) {
+        if let idx = pointers.indexOf(idx) {
           pointers.removeAtIndex(idx)
           removedIndices.append(idx)
         }
         
-        for (index, element) in enumerate(pointers) {
+        for (index, element) in pointers.enumerate() {
           if element >= idx {
             pointers[index] = element - 1
           }
@@ -475,13 +475,13 @@ public class DynamicArrayFilterProxy<T>: DynamicArray<T> {
       }
       
       if removedIndices.count > 0 {
-        self.dispatchWillRemove(reverse(removedIndices))
+        self.dispatchWillRemove(Array(removedIndices.reverse()))
       }
       
       self.pointers = pointers
       
       if removedIndices.count > 0 {
-        self.dispatchDidRemove(reverse(removedIndices))
+        self.dispatchDidRemove(Array(removedIndices.reverse()))
       }
     }
     
@@ -495,7 +495,7 @@ public class DynamicArrayFilterProxy<T>: DynamicArray<T> {
       var updatedIndices: [Int] = []
       var pointers = self.pointers
       
-      if let idx = find(pointers, idx) {
+      if let idx = pointers.indexOf(idx) {
         if filterf(element) {
           // update
           updatedIndices.append(idx)
@@ -506,7 +506,7 @@ public class DynamicArrayFilterProxy<T>: DynamicArray<T> {
         }
       } else {
         if filterf(element) {
-          let position = indexOfFirstEqualOrLargerThan(idx, pointers)
+          let position = indexOfFirstEqualOrLargerThan(idx, array: pointers)
           pointers.insert(idx, atIndex: position)
           insertedIndices.append(position)
         } else {
@@ -589,43 +589,43 @@ public override var value: [T] {
   }
     
     /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
-    @availability(*,unavailable)
+    @available(*,unavailable)
   public override func append(newElement: T) {
     fatalError("Modifying proxy array is not supported!")
   }
     
     /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
-    @availability(*,unavailable)
+    @available(*,unavailable)
   public override func append(array: Array<T>) {
     fatalError("Modifying proxy array is not supported!")
   }
     
     /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
-    @availability(*,unavailable)
+    @available(*,unavailable)
   public override func removeLast() -> T {
     fatalError("Modifying proxy array is not supported!")
   }
     
     /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
-    @availability(*,unavailable)
+    @available(*,unavailable)
   public override func insert(newElement: T, atIndex i: Int) {
     fatalError("Modifying proxy array is not supported!")
   }
     
     /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
-    @availability(*,unavailable)
+    @available(*,unavailable)
   public override func splice(array: Array<T>, atIndex i: Int) {
     fatalError("Modifying proxy array is not supported!")
   }
     
     /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
-    @availability(*,unavailable)
+    @available(*,unavailable)
   public override func removeAtIndex(index: Int) -> T {
     fatalError("Modifying proxy array is not supported!")
   }
     
     /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
-    @availability(*,unavailable)
+    @available(*,unavailable)
   public override func removeAll(keepCapacity: Bool) {
     fatalError("Modifying proxy array is not supported!")
   }
@@ -635,7 +635,7 @@ public override var value: [T] {
     get {
       return sourceArray[pointers[index]]
     }
-    @availability(*,unavailable)
+    @available(*,unavailable)
     set {
       fatalError("Modifying proxy array is not supported!")
     }
@@ -648,18 +648,18 @@ extension DynamicArray
 {
     /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
   public func map<U>(f: (T, Int) -> U) -> DynamicArrayMapProxy<T, U> {
-    return _map(self, f)
+    return _map(self, f: f)
   }
     
     /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
   public func map<U>(f: T -> U) -> DynamicArrayMapProxy<T, U> {
     let mapf = { (o: T, i: Int) -> U in f(o) }
-    return _map(self, mapf)
+    return _map(self, f: mapf)
   }
     
     /// **주의** 원래는 `public`이 아니고 `internal`이었음. 즉, 비공개 API였음.
   public func filter(f: T -> Bool) -> DynamicArrayFilterProxy<T> {
-    return _filter(self, f)
+    return _filter(self, f: f)
   }
 }
 
